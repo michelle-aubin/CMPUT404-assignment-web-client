@@ -85,7 +85,7 @@ class HTTPClient(object):
             f"User-Agent: {self.agent}\r\n"
             f"Accept: {self.accept}\r\n"
             f"Connection: {self.conn}\r\n"
-            f"\r\n\r\n"
+            f"\r\n"
         )
         print("---Request---")
         print(request)
@@ -100,9 +100,42 @@ class HTTPClient(object):
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
-        code = 500
-        body = ""
+        url = urlparse(url)
+        host = url.hostname
+        port = url.port if url.port else 80
+        port_str = f":{port}" if port else ''
+        path = url.path if url.path else '/'
+        post_body = self.build_post_body(args)
+        self.connect(host, port)
+
+        request = (
+            f"POST {path} HTTP/1.1\r\n"
+            f"Host: {host}{port_str}\r\n"
+            f"User-Agent: {self.agent}\r\n"
+            f"Accept: {self.accept}\r\n"
+            f"Connection: {self.conn}\r\n"
+            f"Content-Type: application/x-www-form-urlencoded\r\n"
+            f"Content-Length: {len(post_body.encode())}\r\n"
+            f"\r\n"
+            f"{post_body}"
+        )
+        print("---Request---")
+        print(request)
+        self.sendall(request)
+
+        response = self.recvall(self.socket)
+        print("---Response---")
+        print(response)
+        code = self.get_code(response)
+        body = self.get_body(response)
+        self.close()
         return HTTPResponse(code, body)
+
+    def build_post_body(self, args=None):
+        if args:
+            return '&'.join(f"{k}={v}" for k, v in args.items())
+        else:
+            return ''
 
     def command(self, url, command="GET", args=None):
         if (command == "POST"):
