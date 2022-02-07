@@ -22,3 +22,5 @@ compatible) http://docs.python.org/2/library/socketserver.html
 Resources
 =========
 - https://docs.python.org/3.6/library/urllib.parse.html
+- https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST
+
